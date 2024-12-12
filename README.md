@@ -2,6 +2,7 @@
 Este repositorio contiene un código diseñado para implementar un sistema de RAG (Retrieval-Augmented Generation) utilizando herramientas de la biblioteca LangChain.  El sistema combina capacidades de recuperación de información con generación de texto para responder a consultas, apoyándose en un documento específico como base de conocimiento.
 
     import subprocess
+    import os
 
 #Configurar el entorno e instalar paquetes
 
