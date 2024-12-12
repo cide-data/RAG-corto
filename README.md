@@ -46,34 +46,56 @@ Este repositorio contiene un código diseñado para implementar un sistema de RA
 #Se divide el contenido del documento en fragmentos manejables utilizando un separador y configurando el tamaño de los fragmentos
 
     text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=2000,
-        chunk_overlap=200
+    separator="\n",
+    chunk_size=2000,
+    chunk_overlap=200
     )
+# Valida si la variable docs está vacío
+    if not docs:
+        raise ValueError("La lista de documentos 'docs' está vacía. Proporcione documentos válidos.")
+    
     
     texts = text_splitter.split_documents(docs)
 
-#Se generan vectores a partir de los fragmentos de texto utilizando
-
+# Crear los embeddings
     embeddings = HuggingFaceEmbeddings()
 
-#Se crea una base de datos vectorial utilizando FAISS para realizar búsquedas eficientes.
+# Ruta para guardar el índice FAISS
+    index_directory = "vector_store"
+    index_path = os.path.join(index_directory, "faiss_index")
 
-    db = FAISS.from_documents(texts, embeddings)
+# Asegurar que el directorio exista
+    ensure_directory_exists(index_directory)
 
-#Se implementa una cadena de preguntas y respuestas utilizando el modelo
+# Cargar o crear el índice FAISS
+    if os.path.exists(index_path):
+        print(f"Cargando índice FAISS desde {index_path}...")
+        db = FAISS.load_local(index_path, embeddings)
+    else:
+        print("Creando un nuevo índice FAISS...")
+        db = FAISS.from_documents(texts, embeddings)
+        print(f"Guardando índice FAISS en {index_path}...")
+        db.save_local(index_path)
 
+# Configurar el modelo LLM (Ollama Llama3)
     llm = Ollama(model="llama3")
-    
+
+# Crear la cadena de preguntas y respuestas
     chain = RetrievalQA.from_chain_type(
-        llm,
+        llm=llm,
         retriever=db.as_retriever()
     )
 
-#Se formula una consulta al sistema y se imprime la respuesta generada
+# Hacer una consulta
+    question = "¿Que es un estadístico?"
+
+# Validación de entrada para la pregunta
+    if not question.strip():
+        raise ValueError("La pregunta esta vacia. Proporcione una consulta valida.")
     
-    question = "que es un estadistico?"
-    
+    print(f"Haciendo la consulta: {question}")
     result = chain.invoke({"query": question})
-    
+
+# Mostrar el resultado
+    print("Resultado:")
     print(result['result'])
