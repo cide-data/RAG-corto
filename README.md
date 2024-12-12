@@ -51,24 +51,29 @@ Este repositorio contiene un código diseñado para implementar un sistema de RA
     chunk_size=2000,
     chunk_overlap=200
     )
-# Valida si la variable docs está vacío
+#Valida si la variable docs está vacío
+   
     if not docs:
         raise ValueError("La lista de documentos 'docs' está vacía. Proporcione documentos válidos.")
     
     
     texts = text_splitter.split_documents(docs)
 
-# Crear los embeddings
+#Crear los embeddings
+    
     embeddings = HuggingFaceEmbeddings()
 
-# Ruta para guardar el índice FAISS
+#Ruta para guardar el índice FAISS
+ 
     index_directory = "vector_store"
     index_path = os.path.join(index_directory, "faiss_index")
 
-# Asegurar que el directorio exista
+#Asegurar que el directorio exista
+ 
     ensure_directory_exists(index_directory)
 
-# Cargar o crear el índice FAISS
+#Cargar o crear el índice FAISS
+ 
     if os.path.exists(index_path):
         print(f"Cargando índice FAISS desde {index_path}...")
         db = FAISS.load_local(index_path, embeddings)
@@ -78,25 +83,30 @@ Este repositorio contiene un código diseñado para implementar un sistema de RA
         print(f"Guardando índice FAISS en {index_path}...")
         db.save_local(index_path)
 
-# Configurar el modelo LLM (Ollama Llama3)
-    llm = Ollama(model="llama3")
+#Configurar el modelo LLM (Ollama Llama3)
 
-# Crear la cadena de preguntas y respuestas
+       llm = Ollama(model="llama3")
+
+#Crear la cadena de preguntas y respuestas
+ 
     chain = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=db.as_retriever()
     )
 
-# Hacer una consulta
+#Hacer una consulta
+ 
     question = "¿Que es un estadístico?"
 
-# Validación de entrada para la pregunta
+#Validación de entrada para la pregunta
+ 
     if not question.strip():
         raise ValueError("La pregunta esta vacia. Proporcione una consulta valida.")
     
     print(f"Haciendo la consulta: {question}")
     result = chain.invoke({"query": question})
 
-# Mostrar el resultado
+#Mostrar el resultado
+ 
     print("Resultado:")
     print(result['result'])
